@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador — Terminal de validación Jidoka (CM-04)</title>
+<style>
+  :root {
+    --navy: #2F5498;
+    --navy-dark: #1F3864;
+    --steel: #6D8DC5;
+    --green: #43A047;
+    --green-light: #E7F0DE;
+    --amber: #C07A0E;
+    --amber-light: #FDF0DB;
+    --red: #B33A2E;
+    --red-light: #F8DCD8;
+    --grey: #5B5B5B;
+    --grey-light: #EEEEEE;
+    --bezel: #23262C;
+    --ink: #1B1D1F;
+    --paper: #F6F7F9;
+    --line: #D8DCE2;
+    font-size: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14161A; --ink: #EDEEF0; --line: #33373E; --grey-light: #23262B;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14161A; --ink: #EDEEF0; --line: #33373E; --grey-light: #23262B;
+  }
+
+  header.top {
+    background: var(--navy-dark);
+    color: white;
+    padding: 18px 26px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  header.top .brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.2px; }
+  header.top .brand span { color: #A9C2E8; font-weight: 400; }
+  header.top .tag { font-size: 0.82rem; color: #C6D3EA; }
+
+  main {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 22px 60px;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 26px;
+  }
+  @media (max-width: 880px) {
+    main { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .panel h2 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--grey);
+    margin: 0 0 16px;
+    font-weight: 700;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 0.86rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  .field .hint { font-size: 0.76rem; color: var(--grey); margin-top: 3px; }
+  select, input[type="text"], input[type="time"] {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-size: 0.92rem;
+    background: white;
+    color: var(--ink);
+  }
+  :root[data-theme="dark"] select, :root[data-theme="dark"] input,
+  @media (prefers-color-scheme: dark) { select, input { background: #1D2025; } }
+
+  .toggle-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: var(--grey-light);
+    border-radius: 7px;
+    margin-bottom: 14px;
+  }
+  .toggle-row label { font-size: 0.86rem; font-weight: 600; margin: 0; flex: 1; }
+  .switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0; background: #C7CBD1; border-radius: 24px;
+    cursor: pointer; transition: 0.15s;
+  }
+  .slider::before {
+    content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px;
+    background: white; border-radius: 50%; transition: 0.15s;
+  }
+  input:checked + .slider { background: var(--red); }
+  input:checked + .slider::before { transform: translateX(18px); }
+
+  button.primary {
+    width: 100%;
+    padding: 13px;
+    background: var(--navy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.98rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  button.primary:hover { background: var(--navy-dark); }
+  button.secondary {
+    width: 100%;
+    padding: 9px;
+    background: none;
+    color: var(--grey);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  .presets { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+  .preset-btn {
+    text-align: left;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    background: white;
+    border-radius: 7px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  @media (prefers-color-scheme: dark) { .preset-btn { background: #1D2025; } }
+  .preset-btn:hover { border-color: var(--navy); }
+  .preset-btn b { display: block; font-size: 0.84rem; }
+
+  /* ---- terminal display ---- */
+  .terminal-wrap { display: flex; justify-content: center; }
+  .bezel {
+    background: var(--bezel);
+    border-radius: 24px;
+    padding: 16px;
+    width: 100%;
+    max-width: 560px;
+  }
+  .screen {
+    background: #FCFCFD;
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 480px;
+    display: flex;
+    flex-direction: column;
+  }
+  .screen .head {
+    background: var(--navy);
+    color: white;
+    padding: 16px 20px;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .screen .body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+  .row-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--grey); margin-bottom: 3px; }
+  .op-name { font-size: 1.15rem; font-weight: 700; color: var(--ink); }
+  .op-sub { font-size: 0.82rem; color: var(--grey); margin-top: 2px; }
+  .divider { height: 1px; background: var(--line); margin: 14px 0; }
+  .ot-code { font-size: 1.02rem; font-weight: 700; }
+
+  .status-box {
+    margin-top: 16px;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .status-icon {
+    width: 46px; height: 46px; border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 1.4rem; font-weight: 700;
+  }
+  .status-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+  .status-desc { font-size: 0.86rem; color: #333; margin-bottom: 6px; }
+  .status-action { font-size: 0.84rem; font-weight: 600; color: #222; }
+
+  .status-conforme { background: var(--green-light); } .status-conforme .status-icon { background: var(--green); }
+  .status-noconforme { background: var(--red-light); } .status-noconforme .status-icon { background: var(--red); }
+  .status-sinprog { background: var(--amber-light); } .status-sinprog .status-icon { background: var(--amber); }
+  .status-fuerahorario { background: var(--amber-light); } .status-fuerahorario .status-icon { background: var(--amber); }
+  .status-sinconexion { background: var(--grey-light); } .status-sinconexion .status-icon { background: #6B6B6B; }
+  .status-rechazada { background: var(--red-light); } .status-rechazada .status-icon { background: var(--red); }
+  .status-idle { background: var(--grey-light); color: var(--grey); }
+  .status-idle .status-icon { background: #B7BBC1; }
+
+  .stamp { margin-top: auto; padding-top: 14px; font-size: 0.74rem; color: #9A9A9A; }
+
+  .auth-chip {
+    display: inline-block; font-size: 0.72rem; font-weight: 700;
+    padding: 3px 9px; border-radius: 20px; margin-top: 8px;
+  }
+  .auth-tarjeta { background: #DCE6F5; color: var(--navy-dark); }
+  .auth-pin { background: #E4EAF7; color: #33507F; }
+
+  /* ---- log ---- */
+  .log { margin-top: 22px; }
+  .log h2 { margin-bottom: 10px; }
+  .log-entry {
+    display: grid;
+    grid-template-columns: 70px 1fr auto;
+    gap: 10px;
+    padding: 9px 4px;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.84rem;
+    align-items: center;
+  }
+  .log-entry:last-child { border-bottom: none; }
+  .log-dot { width: 10px; height: 10px; border-radius: 50%; justify-self: center; }
+  .log-empty { color: var(--grey); font-size: 0.84rem; padding: 6px 4px; }
+
+  footer.note {
+    max-width: 1180px; margin: 0 auto 50px; padding: 0 22px;
+    font-size: 0.8rem; color: var(--grey); line-height: 1.5;
+  }
+  footer.note code { background: var(--grey-light); padding: 1px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">SIMA·PCP <span>· Simulador de terminal de validación Jidoka (CM-04)</span></div>
+  <div class="tag">Prototipo de datos fijos — sin conexión real a Unisys</div>
+</header>
+
+<main>
+  <!-- ============ CONTROL PANEL ============ -->
+  <section class="panel">
+    <h2>1 · Escenario rápido</h2>
+    <div class="presets" id="presets"></div>
+
+    <h2 style="margin-top:22px;">2 · Entrada manual</h2>
+
+    <div class="field">
+      <label for="worker">Operario (referencia)</label>
+      <select id="worker"></select>
+      <div class="hint">Autocompleta tarjeta y PIN reales del operario. Puedes editarlos después.</div>
+    </div>
+
+    <div class="field">
+      <label for="tarjeta">Tarjeta detectada (ID leído por el lector)</label>
+      <input type="text" id="tarjeta" placeholder="p. ej. TAG-2048">
+      <div class="hint">Déjalo vacío o escribe un ID inexistente para forzar el respaldo por PIN.</div>
+    </div>
+
+    <div class="field">
+      <label for="pin">PIN de respaldo</label>
+      <input type="text" id="pin" placeholder="4 dígitos">
+    </div>
+
+    <div class="field">
+      <label for="ot">OT que intenta registrar</label>
+      <select id="ot"></select>
+      <div class="hint">Por defecto es la suya. Cámbiala para simular una marca no conforme.</div>
+    </div>
+
+    <div class="field">
+      <label for="hora">Hora de la marca (simulada)</label>
+      <input type="time" id="hora">
+    </div>
+
+    <div class="toggle-row">
+      <label for="offline">Simular terminal sin conexión a Unisys</label>
+      <label class="switch">
+        <input type="checkbox" id="offline">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <button class="primary" id="btnMarcar">Marcar</button>
+    <button class="secondary" id="btnReset">Limpiar registro de sesión</button>
+  </section>
+
+  <!-- ============ TERMINAL DISPLAY ============ -->
+  <div>
+    <div class="terminal-wrap">
+      <div class="bezel">
+        <div class="screen">
+          <div class="head">TERMINAL DE VALIDACIÓN — DIQUE SECO</div>
+          <div class="body" id="screenBody">
+            <div class="row-label">Estado</div>
+            <div class="op-name">Esperando marca…</div>
+            <div class="op-sub">Selecciona un escenario o completa los datos y presiona «Marcar».</div>
+            <div class="status-box status-idle" style="margin-top:20px;">
+              <div class="status-icon">–</div>
+              <div>
+                <div class="status-title">Sin actividad</div>
+                <div class="status-desc">El terminal no ha procesado ninguna marca todavía.</div>
+              </div>
+            </div>
+            <div class="stamp">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel log">
+      <h2>Registro de la sesión (no persiste al recargar)</h2>
+      <div id="logList"><div class="log-empty">Todavía no hay marcas registradas.</div></div>
+    </div>
+  </div>
+</main>
+
+<footer class="note">
+  Este simulador corre enteramente en tu navegador con datos fijos (ver <code>datos-de-prueba.md</code>). No envía ni recibe
+  información de ningún sistema real. La lista de operarios, tarjetas, PIN y OT programadas está en el archivo
+  <code>data.js</code>. Ver <code>README.md</code> para el detalle de qué reemplazar antes de un uso real con Unisys.
+</footer>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const workerSel = $("worker"), tarjetaInp = $("tarjeta"), pinInp = $("pin"),
+        otSel = $("ot"), horaInp = $("hora"), offlineChk = $("offline"),
+        screenBody = $("screenBody"), logList = $("logList"), presetsEl = $("presets");
+
+  // ---- populate worker & OT selects ----
+  WORKERS.forEach((w, i) => {
+    const o = document.createElement("option");
+    o.value = w.codigo; o.textContent = `${w.nombre} — Código ${w.codigo}`;
+    workerSel.appendChild(o);
+  });
+  ALL_OTS.forEach(ot => {
+    const o = document.createElement("option");
+    o.value = ot.codigo; o.textContent = `${ot.codigo} — ${ot.taller}`;
+    otSel.appendChild(o);
+  });
+
+  function workerByCodigo(c) { return WORKERS.find(w => w.codigo === c); }
+  function otByCodigo(c) { return ALL_OTS.find(o => o.codigo === c); }
+
+  function fillFromWorker(codigo) {
+    const w = workerByCodigo(codigo);
+    if (!w) return;
+    tarjetaInp.value = w.tarjeta;
+    pinInp.value = w.pin;
+    otSel.value = w.otAsignada || "";
+    horaInp.value = w.horaSugerida || nowHHMM();
+  }
+
+  function nowHHMM() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+  }
+
+  workerSel.addEventListener("change", () => fillFromWorker(workerSel.value));
+  workerSel.value = WORKERS[0].codigo;
+  fillFromWorker(WORKERS[0].codigo);
+
+  // ---- preset scenario buttons ----
+  const PRESETS = [
+    { label: "① Marca conforme", desc: "Marcelo, tarjeta válida, OT correcta, en horario",
+      run: () => { workerSel.value = "20481"; fillFromWorker("20481"); tarjetaInp.value = "TAG-2048"; otSel.value = "OT-48213"; horaInp.value = "09:30"; offlineChk.checked = false; } },
+    { label: "② Marca no conforme", desc: "Jorge, tarjeta válida, registra la OT de otro taller",
+      run: () => { workerSel.value = "20015"; fillFromWorker("20015"); tarjetaInp.value = "TAG-2001"; otSel.value = "OT-48213"; horaInp.value = "09:30"; offlineChk.checked = false; } },
+    { label: "③ Marca sin programación", desc: "Luis, tarjeta válida, sin ninguna OT asignada hoy",
+      run: () => { workerSel.value = "20699"; fillFromWorker("20699"); tarjetaInp.value = "TAG-2069"; otSel.value = ALL_OTS[0].codigo; horaInp.value = "09:30"; offlineChk.checked = false; } },
+    { label: "④ Marca fuera de horario", desc: "Rosa, tarjeta válida, marca a las 16:42 (turno 07:00–15:00)",
+      run: () => { workerSel.value = "20344"; fillFromWorker("20344"); tarjetaInp.value = "TAG-2034"; otSel.value = "OT-48221"; horaInp.value = "16:42"; offlineChk.checked = false; } },
+    { label: "⑤ Identidad por PIN (respaldo)", desc: "Ana, tarjeta no reconocida → autentica con PIN",
+      run: () => { workerSel.value = "19532"; fillFromWorker("19532"); tarjetaInp.value = "TAG-9999"; pinInp.value = "1953"; otSel.value = "OT-48201"; horaInp.value = "09:30"; offlineChk.checked = false; } },
+    { label: "⑥ Marca rechazada", desc: "Tarjeta no reconocida y PIN incorrecto",
+      run: () => { workerSel.value = "19532"; fillFromWorker("19532"); tarjetaInp.value = "TAG-9999"; pinInp.value = "0000"; otSel.value = "OT-48201"; horaInp.value = "09:30"; offlineChk.checked = false; } },
+    { label: "⑦ Terminal sin conexión", desc: "Cualquier operario, con la red caída",
+      run: () => { workerSel.value = "20481"; fillFromWorker("20481"); tarjetaInp.value = "TAG-2048"; otSel.value = "OT-48213"; horaInp.value = "09:30"; offlineChk.checked = true; } },
+  ];
+  PRESETS.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "preset-btn";
+    b.innerHTML = `<b>${p.label}</b>${p.desc}`;
+    b.addEventListener("click", p.run);
+    presetsEl.appendChild(b);
+  });
+
+  // ---- core validation logic (mirrors Figura 26 / Tabla 26 of the thesis) ----
+  function evaluar() {
+    const tarjetaVal = tarjetaInp.value.trim();
+    const pinVal = pinInp.value.trim();
+    const otIntentada = otSel.value;
+    const hora = horaInp.value || nowHHMM();
+    const offline = offlineChk.checked;
+
+    if (offline) {
+      return { estado: "sinconexion", operario: null, hora, otIntentada };
+    }
+
+    // Step 1: identity — tarjeta primaria, PIN de respaldo
+    let operario = WORKERS.find(w => w.tarjeta === tarjetaVal);
+    let metodo = "tarjeta";
+    if (!operario) {
+      operario = WORKERS.find(w => w.pin === pinVal);
+      metodo = "pin";
+      if (!operario) {
+        return { estado: "rechazada", operario: null, hora, otIntentada };
+      }
+    }
+
+    // Step 2: contrast against simulated Unisys programming
+    if (!operario.otAsignada) {
+      return { estado: "sinprogramacion", operario, hora, otIntentada, metodo };
+    }
+    if (otIntentada !== operario.otAsignada) {
+      return { estado: "noconforme", operario, hora, otIntentada, metodo };
+    }
+    const [hIni, mIni] = operario.turnoInicio.split(":").map(Number);
+    const [hFin, mFin] = operario.turnoFin.split(":").map(Number);
+    const [hM, mM] = hora.split(":").map(Number);
+    const minutos = hM * 60 + mM;
+    const minIni = hIni * 60 + mIni, minFin = hFin * 60 + mFin;
+    if (minutos < minIni || minutos > minFin) {
+      return { estado: "fuerahorario", operario, hora, otIntentada, metodo };
+    }
+    return { estado: "conforme", operario, hora, otIntentada, metodo };
+  }
+
+  const RENDER = {
+    conforme: (r) => ({
+      cls: "status-conforme", icon: "✓", title: "MARCA CONFORME",
+      desc: `El operario coincide con la OT programada para esta zona y turno.`,
+      action: "Registro liberado hacia Unisys sin intervención."
+    }),
+    noconforme: (r) => ({
+      cls: "status-noconforme", icon: "✕", title: "MARCA NO CONFORME — PARTE BLOQUEADO",
+      desc: `${r.otIntentada} no coincide con la OT asignada al operario en Unisys (${r.operario.otAsignada}).`,
+      action: "Contactar al jefe de taller para regularizar la excepción."
+    }),
+    sinprogramacion: (r) => ({
+      cls: "status-sinprog", icon: "!", title: "MARCA SIN PROGRAMACIÓN",
+      desc: "El operario marca en una zona sin ninguna OT activa a su nombre.",
+      action: "Registro bloqueado hasta asignar manualmente una OT vigente."
+    }),
+    fuerahorario: (r) => ({
+      cls: "status-fuerahorario", icon: "!", title: "MARCA FUERA DE HORARIO",
+      desc: `El operario marca a las ${r.hora} h, fuera del turno programado (${r.operario.turnoInicio}–${r.operario.turnoFin} h).`,
+      action: "Alerta de revisión sin bloqueo, a la espera de sobretiempo autorizado."
+    }),
+    sinconexion: (r) => ({
+      cls: "status-sinconexion", icon: "!", title: "TERMINAL SIN CONEXIÓN",
+      desc: "El terminal no logra contrastar la marca contra Unisys.",
+      action: "Marca registrada en modo de contingencia local, pendiente de validación al reconectar."
+    }),
+    rechazada: (r) => ({
+      cls: "status-rechazada", icon: "✕", title: "MARCA RECHAZADA",
+      desc: "La tarjeta no fue reconocida y el PIN ingresado no corresponde a ningún operario.",
+      action: "Vuelva a intentar con la tarjeta o verifique el PIN."
+    }),
+  };
+
+  function render(r) {
+    const v = RENDER[r.estado](r);
+    const opBlock = r.operario
+      ? `<div class="row-label">Operario</div>
+         <div class="op-name">${r.operario.nombre}</div>
+         <div class="op-sub">Código ${r.operario.codigo} · Tarjeta de proximidad + PIN</div>
+         <span class="auth-chip ${r.metodo === "pin" ? "auth-pin" : "auth-tarjeta"}">${r.metodo === "pin" ? "Identidad confirmada por PIN" : "Identidad confirmada por tarjeta"}</span>
+         <div class="divider"></div>
+         <div class="row-label">Orden de trabajo programada (Unisys)</div>
+         <div class="ot-code">${r.operario.otAsignada ? r.operario.otAsignada + " — " + otByCodigo(r.operario.otAsignada).taller : "Sin OT activa asignada en esta zona"}</div>`
+      : `<div class="row-label">Operario</div>
+         <div class="op-name">No identificado</div>
+         <div class="op-sub">Tarjeta y PIN no coinciden con ningún registro</div>
+         <div class="divider"></div>
+         <div class="row-label">Orden de trabajo programada (Unisys)</div>
+         <div class="ot-code">Sin contraste disponible</div>`;
+
+    screenBody.innerHTML = `
+      ${opBlock}
+      <div class="status-box ${v.cls}" style="margin-top:16px;">
+        <div class="status-icon">${v.icon}</div>
+        <div>
+          <div class="status-title">${v.title}</div>
+          <div class="status-desc">${v.desc}</div>
+          <div class="status-action">${v.action}</div>
+        </div>
+      </div>
+      <div class="stamp">Marca registrada: hoy, ${r.hora} h</div>
+    `;
+    addLog(r, v);
+  }
+
+  const DOT_COLOR = {
+    conforme: "#43A047", noconforme: "#B33A2E", sinprogramacion: "#C07A0E",
+    fuerahorario: "#C07A0E", sinconexion: "#6B6B6B", rechazada: "#B33A2E"
+  };
+  function addLog(r, v) {
+    if (logList.querySelector(".log-empty")) logList.innerHTML = "";
+    const row = document.createElement("div");
+    row.className = "log-entry";
+    row.innerHTML = `
+      <span>${r.hora}</span>
+      <span><b>${v.title}</b> — ${r.operario ? r.operario.nombre : "No identificado"}${r.otIntentada ? " · " + r.otIntentada : ""}</span>
+      <span class="log-dot" style="background:${DOT_COLOR[r.estado]}"></span>`;
+    logList.prepend(row);
+  }
+
+  $("btnMarcar").addEventListener("click", () => render(evaluar()));
+  $("btnReset").addEventListener("click", () => { logList.innerHTML = '<div class="log-empty">Todavía no hay marcas registradas.</div>'; });
+
+  horaInp.value = nowHHMM();
+})();
+</script>
+</body>
+</html>

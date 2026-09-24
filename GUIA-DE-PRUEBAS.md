@@ -1,0 +1,110 @@
+# Guía de pruebas — Simulador de terminal de validación Jidoka (CM-04)
+
+Este documento indica exactamente qué ingresar en el simulador (`index.html`) para reproducir cada uno de los
+cinco escenarios de la Tabla 26 del documento de tesis, más los dos casos de autenticación híbrida (Figura 26).
+Sirve tanto para probar el prototipo a mano como de guion para grabar el video de funcionamiento.
+
+Cada escenario tiene un botón directo en el panel **"1 · Escenario rápido"** que carga los datos por ti. Abajo
+se explica también cómo armarlo a mano en **"2 · Entrada manual"**, por si quieres mostrar el llenado campo por
+campo en el video.
+
+---
+
+## Antes de empezar
+
+Todos los datos de prueba (operarios, tarjetas, PIN, OT y turnos) están fijos en `data.js`. No necesitas
+inventar nada: usa exactamente los valores de esta guía. La tabla completa de operarios está en
+`datos-de-prueba.md`.
+
+---
+
+## Caso 1 — Marca conforme
+
+**Qué demuestra:** la identidad del operario coincide con la OT programada, dentro de su turno. El sistema
+libera el registro sin intervención.
+
+- Botón rápido: **① Marca conforme**
+- A mano: Operario = *Marcelo Huamán Ríos*, Tarjeta = `TAG-2048`, OT que intenta registrar = `OT-48213`, Hora = `09:30`, conexión = activada (switch apagado)
+- Resultado esperado: panel verde, **MARCA CONFORME**
+
+---
+
+## Caso 2 — Marca no conforme
+
+**Qué demuestra:** el operario marca una OT que no es la suya. El sistema bloquea el cierre del parte.
+
+- Botón rápido: **② Marca no conforme**
+- A mano: Operario = *Jorge Ramírez Soto* (su OT real es `OT-48190`), Tarjeta = `TAG-2001`, pero **OT que intenta registrar** = `OT-48213` (la de otro taller), Hora = `09:30`
+- Resultado esperado: panel rojo, **MARCA NO CONFORME — PARTE BLOQUEADO**, mencionando su OT real entre paréntesis
+
+---
+
+## Caso 3 — Marca sin programación
+
+**Qué demuestra:** el operario no tiene ninguna OT activa asignada hoy.
+
+- Botón rápido: **③ Marca sin programación**
+- A mano: Operario = *Luis Cárdenas Peña*, Tarjeta = `TAG-2069`, OT que intenta registrar = cualquiera de la lista, Hora = `09:30`
+- Resultado esperado: panel ámbar, **MARCA SIN PROGRAMACIÓN**
+
+---
+
+## Caso 4 — Marca fuera de horario
+
+**Qué demuestra:** la OT es correcta, pero la hora de marca cae fuera del turno programado (07:00–15:00).
+
+- Botón rápido: **④ Marca fuera de horario**
+- A mano: Operario = *Rosa Delgado Vidal*, Tarjeta = `TAG-2034`, OT = `OT-48221` (la suya), **Hora = `16:42`**
+- Resultado esperado: panel ámbar, **MARCA FUERA DE HORARIO**, mostrando la hora marcada y el turno programado
+
+> Prueba adicional sugerida: cambia la hora a `06:45` (antes del turno) y confirma que también da fuera de horario.
+
+---
+
+## Caso 5 — Identidad confirmada por PIN (respaldo)
+
+**Qué demuestra:** el flujo híbrido de la Figura 26 — cuando la tarjeta no es reconocida, el sistema pide el PIN
+como respaldo antes de continuar con la validación normal.
+
+- Botón rápido: **⑤ Identidad por PIN (respaldo)**
+- A mano: Operario = *Ana Torres Medina*. En **Tarjeta detectada** escribe un valor que no exista, por ejemplo `TAG-9999`. En **PIN** ingresa `1953` (el suyo). OT = `OT-48201` (la suya), Hora = `09:30`
+- Resultado esperado: panel verde, **MARCA CONFORME**, y debajo del nombre del operario aparece la etiqueta **"Identidad confirmada por PIN"** en vez de "por tarjeta"
+
+---
+
+## Caso 6 — Marca rechazada
+
+**Qué demuestra:** ni la tarjeta ni el PIN corresponden a ningún operario registrado.
+
+- Botón rápido: **⑥ Marca rechazada**
+- A mano: Tarjeta = `TAG-9999` (no existe), PIN = `0000` (no corresponde a nadie)
+- Resultado esperado: panel rojo, **MARCA RECHAZADA**, sin nombre de operario ("No identificado")
+
+---
+
+## Caso 7 — Terminal sin conexión
+
+**Qué demuestra:** el terminal no logra contrastar contra Unisys y registra en modo de contingencia local.
+
+- Botón rápido: **⑦ Terminal sin conexión**
+- A mano: cualquier operario y datos válidos, y luego activa el interruptor **"Simular terminal sin conexión a Unisys"** antes de presionar "Marcar"
+- Resultado esperado: panel gris, **TERMINAL SIN CONEXIÓN**
+
+> El interruptor tiene prioridad sobre cualquier otro dato: aunque la tarjeta y la OT sean correctas, si está
+> activado, el resultado siempre es "sin conexión". Así se comporta un terminal real que pierde la red antes de
+> poder consultar nada.
+
+---
+
+## Guion sugerido para el video (orden recomendado)
+
+1. Caso 1 (conforme) — para mostrar el camino "feliz" primero.
+2. Caso 5 (PIN de respaldo) — para mostrar el método híbrido de autenticación.
+3. Caso 2 (no conforme) y Caso 3 (sin programación) — los dos bloqueos.
+4. Caso 4 (fuera de horario) — el único caso de alerta sin bloqueo.
+5. Caso 6 (rechazada) — el límite del sistema de autenticación.
+6. Caso 7 (sin conexión) — para cerrar mostrando la contingencia, y enlazarlo con la limitación explicada en
+   `README.md` sobre la ausencia de conexión real a Unisys.
+
+Después de cada caso, señala el **registro de la sesión** (parte inferior derecha): ahí queda visible el
+historial de marcas de toda la demostración, útil para mostrar varios casos seguidos sin recargar la página.

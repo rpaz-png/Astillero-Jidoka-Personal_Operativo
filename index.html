@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Simulador — Terminal de validación Jidoka (CM-04)</title>
+<title>Planificación y Control de Producción — Simulador Jidoka</title>
 <style>
   :root {
     --navy: #2F5498;
@@ -21,7 +21,6 @@
     --ink: #1B1D1F;
     --paper: #F6F7F9;
     --line: #D8DCE2;
-    font-size: 16px;
   }
   * { box-sizing: border-box; }
   html, body {
@@ -33,39 +32,49 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --paper: #14161A; --ink: #EDEEF0; --line: #33373E; --grey-light: #23262B;
-    }
+    :root:not([data-theme="light"]) { --paper: #14161A; --ink: #EDEEF0; --line: #33373E; --grey-light: #23262B; }
   }
-  :root[data-theme="dark"] {
-    --paper: #14161A; --ink: #EDEEF0; --line: #33373E; --grey-light: #23262B;
-  }
+  :root[data-theme="dark"] { --paper: #14161A; --ink: #EDEEF0; --line: #33373E; --grey-light: #23262B; }
 
   header.top {
     background: var(--navy-dark);
     color: white;
     padding: 18px 26px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
   }
-  header.top .brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.2px; }
-  header.top .brand span { color: #A9C2E8; font-weight: 400; }
-  header.top .tag { font-size: 0.82rem; color: #C6D3EA; }
+  header.top .brand { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.3px; }
 
-  main {
-    max-width: 1180px;
+  nav.tabs {
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 28px 22px 60px;
+    padding: 0 22px;
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+  }
+  nav.tabs button {
+    padding: 14px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--grey);
+    cursor: pointer;
+  }
+  nav.tabs button.active { color: var(--navy-dark); border-bottom-color: var(--navy); }
+
+  main { max-width: 1280px; margin: 0 auto; padding: 28px 22px 60px; }
+  .tabpage { display: none; }
+  .tabpage.active { display: block; }
+
+  .layout {
     display: grid;
-    grid-template-columns: 380px 1fr;
+    grid-template-columns: 340px 1fr;
     gap: 26px;
+    align-items: start;
   }
-  @media (max-width: 880px) {
-    main { grid-template-columns: 1fr; }
-  }
+  @media (max-width: 920px) { .layout { grid-template-columns: 1fr; } }
 
   .panel {
     background: var(--paper);
@@ -74,143 +83,92 @@
     padding: 20px;
   }
   .panel h2 {
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    color: var(--grey);
-    margin: 0 0 16px;
-    font-weight: 700;
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--grey); margin: 0 0 16px; font-weight: 700;
   }
-
-  .field { margin-bottom: 14px; }
-  .field label {
-    display: block;
-    font-size: 0.86rem;
-    font-weight: 600;
-    margin-bottom: 5px;
-  }
-  .field .hint { font-size: 0.76rem; color: var(--grey); margin-top: 3px; }
-  select, input[type="text"], input[type="time"] {
-    width: 100%;
-    padding: 9px 10px;
-    border: 1px solid var(--line);
-    border-radius: 7px;
-    font-size: 0.92rem;
-    background: white;
-    color: var(--ink);
-  }
-  :root[data-theme="dark"] select, :root[data-theme="dark"] input,
-  @media (prefers-color-scheme: dark) { select, input { background: #1D2025; } }
-
-  .toggle-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px;
-    background: var(--grey-light);
-    border-radius: 7px;
-    margin-bottom: 14px;
-  }
-  .toggle-row label { font-size: 0.86rem; font-weight: 600; margin: 0; flex: 1; }
-  .switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .slider {
-    position: absolute; inset: 0; background: #C7CBD1; border-radius: 24px;
-    cursor: pointer; transition: 0.15s;
-  }
-  .slider::before {
-    content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px;
-    background: white; border-radius: 50%; transition: 0.15s;
-  }
-  input:checked + .slider { background: var(--red); }
-  input:checked + .slider::before { transform: translateX(18px); }
-
-  button.primary {
-    width: 100%;
-    padding: 13px;
-    background: var(--navy);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.98rem;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 6px;
-  }
-  button.primary:hover { background: var(--navy-dark); }
-  button.secondary {
-    width: 100%;
-    padding: 9px;
-    background: none;
-    color: var(--grey);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    font-size: 0.82rem;
-    cursor: pointer;
-    margin-top: 8px;
-  }
-
-  .presets { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+  .presets { display: flex; flex-direction: column; gap: 6px; }
   .preset-btn {
-    text-align: left;
-    padding: 8px 10px;
-    border: 1px solid var(--line);
-    background: white;
-    border-radius: 7px;
-    font-size: 0.78rem;
-    cursor: pointer;
-    color: var(--ink);
+    text-align: left; padding: 9px 11px; border: 1px solid var(--line);
+    background: white; border-radius: 7px; font-size: 0.79rem; cursor: pointer; color: var(--ink);
   }
   @media (prefers-color-scheme: dark) { .preset-btn { background: #1D2025; } }
   .preset-btn:hover { border-color: var(--navy); }
-  .preset-btn b { display: block; font-size: 0.84rem; }
+  .preset-btn b { display: block; font-size: 0.86rem; margin-bottom: 1px; }
 
-  /* ---- terminal display ---- */
+  /* ---- terminal ---- */
   .terminal-wrap { display: flex; justify-content: center; }
   .bezel {
     background: var(--bezel);
-    border-radius: 24px;
-    padding: 16px;
+    border-radius: 28px;
+    padding: 20px;
     width: 100%;
-    max-width: 560px;
+    max-width: 760px;
   }
   .screen {
     background: #FCFCFD;
-    border-radius: 12px;
+    border-radius: 14px;
     overflow: hidden;
-    min-height: 480px;
+    min-height: 640px;
     display: flex;
     flex-direction: column;
   }
   .screen .head {
     background: var(--navy);
     color: white;
-    padding: 16px 20px;
+    padding: 22px 28px;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 1.15rem;
+    letter-spacing: 0.2px;
   }
-  .screen .body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
-  .row-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--grey); margin-bottom: 3px; }
-  .op-name { font-size: 1.15rem; font-weight: 700; color: var(--ink); }
-  .op-sub { font-size: 0.82rem; color: var(--grey); margin-top: 2px; }
-  .divider { height: 1px; background: var(--line); margin: 14px 0; }
-  .ot-code { font-size: 1.02rem; font-weight: 700; }
+  .screen .body { padding: 30px 34px; flex: 1; display: flex; flex-direction: column; }
 
-  .status-box {
-    margin-top: 16px;
-    border-radius: 10px;
-    padding: 16px;
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
+  .row-label-lg { font-size: 0.92rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--grey); margin-bottom: 10px; }
+  .field-block { margin-bottom: 18px; }
+  .field-block label.small { display: block; font-size: 0.86rem; font-weight: 600; margin-bottom: 6px; color: var(--ink); }
+  .screen select, .screen input[type="text"], .screen input[type="time"] {
+    width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 1.05rem; background: white; color: var(--ink);
   }
+  @media (prefers-color-scheme: dark) { .screen select, .screen input { background: #1D2025; } }
+
+  .divider { height: 1px; background: var(--line); margin: 18px 0; }
+
+  .toggle-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; background: var(--grey-light); border-radius: 8px; margin-bottom: 20px;
+  }
+  .toggle-row label { font-size: 0.9rem; font-weight: 600; margin: 0; flex: 1; }
+  .switch { position: relative; width: 44px; height: 25px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: #C7CBD1; border-radius: 25px; cursor: pointer; transition: 0.15s; }
+  .slider::before { content: ""; position: absolute; width: 19px; height: 19px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.15s; }
+  input:checked + .slider { background: var(--red); }
+  input:checked + .slider::before { transform: translateX(19px); }
+
+  button.primary {
+    width: 100%; padding: 15px; background: var(--navy); color: white; border: none;
+    border-radius: 9px; font-size: 1.05rem; font-weight: 700; cursor: pointer; margin-top: auto;
+  }
+  button.primary:hover { background: var(--navy-dark); }
+  button.ghost {
+    width: 100%; padding: 12px; background: none; color: var(--navy-dark);
+    border: 1.5px solid var(--navy); border-radius: 9px; font-size: 0.95rem; font-weight: 700; cursor: pointer; margin-top: 16px;
+  }
+
+  /* ---- result view ---- */
+  .op-name { font-size: 1.5rem; font-weight: 700; color: var(--ink); }
+  .op-sub { font-size: 1rem; color: var(--grey); margin-top: 3px; }
+  .ot-code { font-size: 1.35rem; font-weight: 700; }
+  .ot-sub { font-size: 0.95rem; color: var(--grey); margin-top: 2px; }
+
+  .status-box { margin-top: 20px; border-radius: 12px; padding: 20px; display: flex; gap: 16px; align-items: flex-start; }
   .status-icon {
-    width: 46px; height: 46px; border-radius: 50%;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 1.4rem; font-weight: 700;
+    width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; font-weight: 700;
   }
-  .status-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
-  .status-desc { font-size: 0.86rem; color: #333; margin-bottom: 6px; }
-  .status-action { font-size: 0.84rem; font-weight: 600; color: #222; }
+  .status-title { font-weight: 700; font-size: 1.12rem; margin-bottom: 6px; }
+  .status-desc { font-size: 0.94rem; color: #333; margin-bottom: 8px; line-height: 1.4; }
+  .status-action { font-size: 0.92rem; font-weight: 600; color: #222; line-height: 1.4; }
 
   .status-conforme { background: var(--green-light); } .status-conforme .status-icon { background: var(--green); }
   .status-noconforme { background: var(--red-light); } .status-noconforme .status-icon { background: var(--red); }
@@ -218,124 +176,66 @@
   .status-fuerahorario { background: var(--amber-light); } .status-fuerahorario .status-icon { background: var(--amber); }
   .status-sinconexion { background: var(--grey-light); } .status-sinconexion .status-icon { background: #6B6B6B; }
   .status-rechazada { background: var(--red-light); } .status-rechazada .status-icon { background: var(--red); }
-  .status-idle { background: var(--grey-light); color: var(--grey); }
-  .status-idle .status-icon { background: #B7BBC1; }
 
-  .stamp { margin-top: auto; padding-top: 14px; font-size: 0.74rem; color: #9A9A9A; }
-
-  .auth-chip {
-    display: inline-block; font-size: 0.72rem; font-weight: 700;
-    padding: 3px 9px; border-radius: 20px; margin-top: 8px;
-  }
+  .auth-chip { display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 4px 11px; border-radius: 20px; margin-top: 10px; }
   .auth-tarjeta { background: #DCE6F5; color: var(--navy-dark); }
   .auth-pin { background: #E4EAF7; color: #33507F; }
 
-  /* ---- log ---- */
-  .log { margin-top: 22px; }
-  .log h2 { margin-bottom: 10px; }
+  .stamp { margin-top: auto; padding-top: 18px; font-size: 0.8rem; color: #9A9A9A; }
+
+  /* ---- historial ---- */
   .log-entry {
-    display: grid;
-    grid-template-columns: 70px 1fr auto;
-    gap: 10px;
-    padding: 9px 4px;
-    border-bottom: 1px solid var(--line);
-    font-size: 0.84rem;
-    align-items: center;
+    display: grid; grid-template-columns: 76px 1fr auto; gap: 12px;
+    padding: 12px 6px; border-bottom: 1px solid var(--line); font-size: 0.9rem; align-items: center;
   }
   .log-entry:last-child { border-bottom: none; }
-  .log-dot { width: 10px; height: 10px; border-radius: 50%; justify-self: center; }
-  .log-empty { color: var(--grey); font-size: 0.84rem; padding: 6px 4px; }
+  .log-dot { width: 11px; height: 11px; border-radius: 50%; justify-self: center; }
+  .log-empty { color: var(--grey); font-size: 0.9rem; padding: 8px 6px; }
 
-  footer.note {
-    max-width: 1180px; margin: 0 auto 50px; padding: 0 22px;
-    font-size: 0.8rem; color: var(--grey); line-height: 1.5;
-  }
+  footer.note { max-width: 1280px; margin: 0 auto 50px; padding: 0 22px; font-size: 0.8rem; color: var(--grey); line-height: 1.5; }
   footer.note code { background: var(--grey-light); padding: 1px 6px; border-radius: 4px; }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="brand">SIMA·PCP <span>· Simulador de terminal de validación Jidoka (CM-04)</span></div>
-  <div class="tag">Prototipo de datos fijos — sin conexión real a Unisys</div>
-</header>
+<header class="top"><div class="brand">PLANIFICACIÓN Y CONTROL DE PRODUCCIÓN</div></header>
+
+<nav class="tabs">
+  <button id="tabBtnAsistencia" class="active">Asistencia</button>
+  <button id="tabBtnHistorial">Historial</button>
+</nav>
 
 <main>
-  <!-- ============ CONTROL PANEL ============ -->
-  <section class="panel">
-    <h2>1 · Escenario rápido</h2>
-    <div class="presets" id="presets"></div>
 
-    <h2 style="margin-top:22px;">2 · Entrada manual</h2>
+  <!-- ============ ASISTENCIA ============ -->
+  <section id="tabAsistencia" class="tabpage active">
+    <div class="layout">
 
-    <div class="field">
-      <label for="worker">Operario (referencia)</label>
-      <select id="worker"></select>
-      <div class="hint">Autocompleta tarjeta y PIN reales del operario. Puedes editarlos después.</div>
-    </div>
+      <section class="panel">
+        <h2>Escenario rápido</h2>
+        <div class="presets" id="presets"></div>
+      </section>
 
-    <div class="field">
-      <label for="tarjeta">Tarjeta detectada (ID leído por el lector)</label>
-      <input type="text" id="tarjeta" placeholder="p. ej. TAG-2048">
-      <div class="hint">Déjalo vacío o escribe un ID inexistente para forzar el respaldo por PIN.</div>
-    </div>
-
-    <div class="field">
-      <label for="pin">PIN de respaldo</label>
-      <input type="text" id="pin" placeholder="4 dígitos">
-    </div>
-
-    <div class="field">
-      <label for="ot">OT que intenta registrar</label>
-      <select id="ot"></select>
-      <div class="hint">Por defecto es la suya. Cámbiala para simular una marca no conforme.</div>
-    </div>
-
-    <div class="field">
-      <label for="hora">Hora de la marca (simulada)</label>
-      <input type="time" id="hora">
-    </div>
-
-    <div class="toggle-row">
-      <label for="offline">Simular terminal sin conexión a Unisys</label>
-      <label class="switch">
-        <input type="checkbox" id="offline">
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <button class="primary" id="btnMarcar">Marcar</button>
-    <button class="secondary" id="btnReset">Limpiar registro de sesión</button>
-  </section>
-
-  <!-- ============ TERMINAL DISPLAY ============ -->
-  <div>
-    <div class="terminal-wrap">
-      <div class="bezel">
-        <div class="screen">
-          <div class="head">TERMINAL DE VALIDACIÓN — DIQUE SECO</div>
-          <div class="body" id="screenBody">
-            <div class="row-label">Estado</div>
-            <div class="op-name">Esperando marca…</div>
-            <div class="op-sub">Selecciona un escenario o completa los datos y presiona «Marcar».</div>
-            <div class="status-box status-idle" style="margin-top:20px;">
-              <div class="status-icon">–</div>
-              <div>
-                <div class="status-title">Sin actividad</div>
-                <div class="status-desc">El terminal no ha procesado ninguna marca todavía.</div>
-              </div>
-            </div>
-            <div class="stamp">&nbsp;</div>
+      <div class="terminal-wrap">
+        <div class="bezel">
+          <div class="screen">
+            <div class="head">PLANIFICACIÓN Y CONTROL DE PRODUCCIÓN</div>
+            <div class="body" id="screenBody"></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="panel log">
-      <h2>Registro de la sesión (no persiste al recargar)</h2>
+    </div>
+  </section>
+
+  <!-- ============ HISTORIAL ============ -->
+  <section id="tabHistorial" class="tabpage">
+    <div class="panel">
+      <h2>Registro de asistencia</h2>
       <div id="logList"><div class="log-empty">Todavía no hay marcas registradas.</div></div>
     </div>
-  </div>
+  </section>
+
 </main>
 
 <footer class="note">
@@ -348,162 +248,144 @@
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
-  const workerSel = $("worker"), tarjetaInp = $("tarjeta"), pinInp = $("pin"),
-        otSel = $("ot"), horaInp = $("hora"), offlineChk = $("offline"),
-        screenBody = $("screenBody"), logList = $("logList"), presetsEl = $("presets");
-
-  // ---- populate worker & OT selects ----
-  WORKERS.forEach((w, i) => {
-    const o = document.createElement("option");
-    o.value = w.codigo; o.textContent = `${w.nombre} — Código ${w.codigo}`;
-    workerSel.appendChild(o);
-  });
-  ALL_OTS.forEach(ot => {
-    const o = document.createElement("option");
-    o.value = ot.codigo; o.textContent = `${ot.codigo} — ${ot.taller}`;
-    otSel.appendChild(o);
-  });
-
-  function workerByCodigo(c) { return WORKERS.find(w => w.codigo === c); }
-  function otByCodigo(c) { return ALL_OTS.find(o => o.codigo === c); }
-
-  function fillFromWorker(codigo) {
-    const w = workerByCodigo(codigo);
-    if (!w) return;
-    tarjetaInp.value = w.tarjeta;
-    pinInp.value = w.pin;
-    otSel.value = w.otAsignada || "";
-    horaInp.value = w.horaSugerida || nowHHMM();
-  }
+  const screenBody = $("screenBody"), logList = $("logList"), presetsEl = $("presets");
 
   function nowHHMM() {
     const d = new Date();
     return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
   }
+  function otByCodigo(c) { return ALL_OTS.find(o => o.codigo === c); }
+  function otOptions(selected) {
+    return ALL_OTS.map(ot => `<option value="${ot.codigo}" ${ot.codigo===selected?"selected":""}>${ot.codigo} — ${ot.taller}</option>`).join("");
+  }
 
-  workerSel.addEventListener("change", () => fillFromWorker(workerSel.value));
-  workerSel.value = WORKERS[0].codigo;
-  fillFromWorker(WORKERS[0].codigo);
+  // ---- tabs ----
+  $("tabBtnAsistencia").addEventListener("click", () => switchTab("Asistencia"));
+  $("tabBtnHistorial").addEventListener("click", () => switchTab("Historial"));
+  function switchTab(name) {
+    ["Asistencia","Historial"].forEach(n => {
+      $("tab"+n).classList.toggle("active", n===name);
+      $("tabBtn"+n).classList.toggle("active", n===name);
+    });
+  }
 
-  // ---- preset scenario buttons ----
-  const PRESETS = [
-    { label: "① Marca conforme", desc: "Marcelo, tarjeta válida, OT correcta, en horario",
-      run: () => { workerSel.value = "20481"; fillFromWorker("20481"); tarjetaInp.value = "TAG-2048"; otSel.value = "OT-48213"; horaInp.value = "09:30"; offlineChk.checked = false; } },
-    { label: "② Marca no conforme", desc: "Jorge, tarjeta válida, registra la OT de otro taller",
-      run: () => { workerSel.value = "20015"; fillFromWorker("20015"); tarjetaInp.value = "TAG-2001"; otSel.value = "OT-48213"; horaInp.value = "09:30"; offlineChk.checked = false; } },
-    { label: "③ Marca sin programación", desc: "Luis, tarjeta válida, sin ninguna OT asignada hoy",
-      run: () => { workerSel.value = "20699"; fillFromWorker("20699"); tarjetaInp.value = "TAG-2069"; otSel.value = ALL_OTS[0].codigo; horaInp.value = "09:30"; offlineChk.checked = false; } },
-    { label: "④ Marca fuera de horario", desc: "Rosa, tarjeta válida, marca a las 16:42 (turno 07:00–15:00)",
-      run: () => { workerSel.value = "20344"; fillFromWorker("20344"); tarjetaInp.value = "TAG-2034"; otSel.value = "OT-48221"; horaInp.value = "16:42"; offlineChk.checked = false; } },
-    { label: "⑤ Identidad por PIN (respaldo)", desc: "Ana, tarjeta no reconocida → autentica con PIN",
-      run: () => { workerSel.value = "19532"; fillFromWorker("19532"); tarjetaInp.value = "TAG-9999"; pinInp.value = "1953"; otSel.value = "OT-48201"; horaInp.value = "09:30"; offlineChk.checked = false; } },
-    { label: "⑥ Marca rechazada", desc: "Tarjeta no reconocida y PIN incorrecto",
-      run: () => { workerSel.value = "19532"; fillFromWorker("19532"); tarjetaInp.value = "TAG-9999"; pinInp.value = "0000"; otSel.value = "OT-48201"; horaInp.value = "09:30"; offlineChk.checked = false; } },
-    { label: "⑦ Terminal sin conexión", desc: "Cualquier operario, con la red caída",
-      run: () => { workerSel.value = "20481"; fillFromWorker("20481"); tarjetaInp.value = "TAG-2048"; otSel.value = "OT-48213"; horaInp.value = "09:30"; offlineChk.checked = true; } },
-  ];
-  PRESETS.forEach(p => {
-    const b = document.createElement("button");
-    b.className = "preset-btn";
-    b.innerHTML = `<b>${p.label}</b>${p.desc}`;
-    b.addEventListener("click", p.run);
-    presetsEl.appendChild(b);
-  });
+  // ---- INPUT MODE (empty screen, data entry) ----
+  function renderInput(prefill) {
+    const p = prefill || {};
+    screenBody.innerHTML = `
+      <div class="row-label-lg">Operario</div>
+      <div class="field-block">
+        <label class="small">Tarjeta detectada</label>
+        <input type="text" id="s_tarjeta" placeholder="p. ej. TAG-2048" value="${p.tarjeta||""}">
+      </div>
+      <div class="field-block">
+        <label class="small">PIN de respaldo</label>
+        <input type="text" id="s_pin" placeholder="4 dígitos" value="${p.pin||""}">
+      </div>
+      <div class="divider"></div>
+      <div class="row-label-lg">Orden de trabajo programada</div>
+      <div class="field-block">
+        <label class="small">OT que intenta registrar</label>
+        <select id="s_ot">${otOptions(p.ot)}</select>
+      </div>
+      <div class="field-block">
+        <label class="small">Hora de la marca</label>
+        <input type="time" id="s_hora" value="${p.hora||nowHHMM()}">
+      </div>
+      <div class="toggle-row">
+        <label for="s_offline">Simular terminal sin conexión</label>
+        <label class="switch">
+          <input type="checkbox" id="s_offline" ${p.offline?"checked":""}>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <button class="primary" id="btnMarcar">Marcar</button>
+    `;
+    $("btnMarcar").addEventListener("click", onMarcar);
+  }
 
-  // ---- core validation logic (mirrors Figura 26 / Tabla 26 of the thesis) ----
+  // ---- evaluate against fixed test data ----
   function evaluar() {
-    const tarjetaVal = tarjetaInp.value.trim();
-    const pinVal = pinInp.value.trim();
-    const otIntentada = otSel.value;
-    const hora = horaInp.value || nowHHMM();
-    const offline = offlineChk.checked;
+    const tarjetaVal = $("s_tarjeta").value.trim();
+    const pinVal = $("s_pin").value.trim();
+    const otIntentada = $("s_ot").value;
+    const hora = $("s_hora").value || nowHHMM();
+    const offline = $("s_offline").checked;
 
-    if (offline) {
-      return { estado: "sinconexion", operario: null, hora, otIntentada };
-    }
+    if (offline) return { estado: "sinconexion", operario: null, hora, otIntentada };
 
-    // Step 1: identity — tarjeta primaria, PIN de respaldo
     let operario = WORKERS.find(w => w.tarjeta === tarjetaVal);
     let metodo = "tarjeta";
     if (!operario) {
       operario = WORKERS.find(w => w.pin === pinVal);
       metodo = "pin";
-      if (!operario) {
-        return { estado: "rechazada", operario: null, hora, otIntentada };
-      }
+      if (!operario) return { estado: "rechazada", operario: null, hora, otIntentada };
     }
+    if (!operario.otAsignada) return { estado: "sinprogramacion", operario, hora, otIntentada, metodo };
+    if (otIntentada !== operario.otAsignada) return { estado: "noconforme", operario, hora, otIntentada, metodo };
 
-    // Step 2: contrast against simulated Unisys programming
-    if (!operario.otAsignada) {
-      return { estado: "sinprogramacion", operario, hora, otIntentada, metodo };
-    }
-    if (otIntentada !== operario.otAsignada) {
-      return { estado: "noconforme", operario, hora, otIntentada, metodo };
-    }
     const [hIni, mIni] = operario.turnoInicio.split(":").map(Number);
     const [hFin, mFin] = operario.turnoFin.split(":").map(Number);
     const [hM, mM] = hora.split(":").map(Number);
-    const minutos = hM * 60 + mM;
-    const minIni = hIni * 60 + mIni, minFin = hFin * 60 + mFin;
-    if (minutos < minIni || minutos > minFin) {
-      return { estado: "fuerahorario", operario, hora, otIntentada, metodo };
-    }
+    const minutos = hM*60+mM, minIni = hIni*60+mIni, minFin = hFin*60+mFin;
+    if (minutos < minIni || minutos > minFin) return { estado: "fuerahorario", operario, hora, otIntentada, metodo };
     return { estado: "conforme", operario, hora, otIntentada, metodo };
   }
 
   const RENDER = {
     conforme: (r) => ({
       cls: "status-conforme", icon: "✓", title: "MARCA CONFORME",
-      desc: `El operario coincide con la OT programada para esta zona y turno.`,
-      action: "Registro liberado hacia Unisys sin intervención."
+      desc: `El operario coincide con la OT programada para ${otByCodigo(r.operario.otAsignada).taller}, en el horario ${r.operario.turnoInicio}–${r.operario.turnoFin} h.`,
+      action: "Registro liberado sin intervención."
     }),
     noconforme: (r) => ({
       cls: "status-noconforme", icon: "✕", title: "MARCA NO CONFORME — PARTE BLOQUEADO",
-      desc: `${r.otIntentada} no coincide con la OT asignada al operario en Unisys (${r.operario.otAsignada}).`,
+      desc: `${r.otIntentada} no coincide con la OT asignada al operario (${r.operario.otAsignada}).`,
       action: "Contactar al jefe de taller para regularizar la excepción."
     }),
-    sinprogramacion: (r) => ({
+    sinprogramacion: () => ({
       cls: "status-sinprog", icon: "!", title: "MARCA SIN PROGRAMACIÓN",
       desc: "El operario marca en una zona sin ninguna OT activa a su nombre.",
       action: "Registro bloqueado hasta asignar manualmente una OT vigente."
     }),
     fuerahorario: (r) => ({
       cls: "status-fuerahorario", icon: "!", title: "MARCA FUERA DE HORARIO",
-      desc: `El operario marca a las ${r.hora} h, fuera del turno programado (${r.operario.turnoInicio}–${r.operario.turnoFin} h).`,
+      desc: `El operario marca a las ${r.hora} h, fuera del horario programado para ${otByCodigo(r.operario.otAsignada).taller} (${r.operario.turnoInicio}–${r.operario.turnoFin} h).`,
       action: "Alerta de revisión sin bloqueo, a la espera de sobretiempo autorizado."
     }),
-    sinconexion: (r) => ({
+    sinconexion: () => ({
       cls: "status-sinconexion", icon: "!", title: "TERMINAL SIN CONEXIÓN",
       desc: "El terminal no logra contrastar la marca contra Unisys.",
       action: "Marca registrada en modo de contingencia local, pendiente de validación al reconectar."
     }),
-    rechazada: (r) => ({
+    rechazada: () => ({
       cls: "status-rechazada", icon: "✕", title: "MARCA RECHAZADA",
       desc: "La tarjeta no fue reconocida y el PIN ingresado no corresponde a ningún operario.",
       action: "Vuelva a intentar con la tarjeta o verifique el PIN."
     }),
   };
 
-  function render(r) {
+  function renderResult(r) {
     const v = RENDER[r.estado](r);
     const opBlock = r.operario
-      ? `<div class="row-label">Operario</div>
+      ? `<div class="row-label-lg">Operario</div>
          <div class="op-name">${r.operario.nombre}</div>
-         <div class="op-sub">Código ${r.operario.codigo} · Tarjeta de proximidad + PIN</div>
+         <div class="op-sub">Código ${r.operario.codigo}</div>
          <span class="auth-chip ${r.metodo === "pin" ? "auth-pin" : "auth-tarjeta"}">${r.metodo === "pin" ? "Identidad confirmada por PIN" : "Identidad confirmada por tarjeta"}</span>
          <div class="divider"></div>
-         <div class="row-label">Orden de trabajo programada (Unisys)</div>
-         <div class="ot-code">${r.operario.otAsignada ? r.operario.otAsignada + " — " + otByCodigo(r.operario.otAsignada).taller : "Sin OT activa asignada en esta zona"}</div>`
-      : `<div class="row-label">Operario</div>
+         <div class="row-label-lg">Orden de trabajo programada</div>
+         <div class="ot-code">${r.operario.otAsignada ? r.operario.otAsignada : "Sin OT activa asignada"}</div>
+         ${r.operario.otAsignada ? `<div class="ot-sub">${otByCodigo(r.operario.otAsignada).taller}</div>` : ""}`
+      : `<div class="row-label-lg">Operario</div>
          <div class="op-name">No identificado</div>
          <div class="op-sub">Tarjeta y PIN no coinciden con ningún registro</div>
          <div class="divider"></div>
-         <div class="row-label">Orden de trabajo programada (Unisys)</div>
+         <div class="row-label-lg">Orden de trabajo programada</div>
          <div class="ot-code">Sin contraste disponible</div>`;
 
     screenBody.innerHTML = `
       ${opBlock}
-      <div class="status-box ${v.cls}" style="margin-top:16px;">
+      <div class="status-box ${v.cls}">
         <div class="status-icon">${v.icon}</div>
         <div>
           <div class="status-title">${v.title}</div>
@@ -512,9 +394,13 @@
         </div>
       </div>
       <div class="stamp">Marca registrada: hoy, ${r.hora} h</div>
+      <button class="ghost" id="btnNuevaMarca">Registrar otra marca</button>
     `;
+    $("btnNuevaMarca").addEventListener("click", () => renderInput());
     addLog(r, v);
   }
+
+  function onMarcar() { renderResult(evaluar()); }
 
   const DOT_COLOR = {
     conforme: "#43A047", noconforme: "#B33A2E", sinprogramacion: "#C07A0E",
@@ -531,10 +417,32 @@
     logList.prepend(row);
   }
 
-  $("btnMarcar").addEventListener("click", () => render(evaluar()));
-  $("btnReset").addEventListener("click", () => { logList.innerHTML = '<div class="log-empty">Todavía no hay marcas registradas.</div>'; });
+  // ---- preset scenarios: fill the ON-SCREEN input fields, wait for "Marcar" ----
+  const PRESETS = [
+    { label: "① Marca conforme", desc: "Marcelo, tarjeta válida, OT correcta, en horario",
+      data: { tarjeta:"TAG-2048", pin:"2048", ot:"OT-48213", hora:"09:30", offline:false } },
+    { label: "② Marca no conforme", desc: "Jorge, tarjeta válida, registra la OT de otro taller",
+      data: { tarjeta:"TAG-2001", pin:"2015", ot:"OT-48213", hora:"09:30", offline:false } },
+    { label: "③ Marca sin programación", desc: "Luis, tarjeta válida, sin ninguna OT asignada hoy",
+      data: { tarjeta:"TAG-2069", pin:"2069", ot:ALL_OTS[0].codigo, hora:"09:30", offline:false } },
+    { label: "④ Marca fuera de horario", desc: "Rosa, tarjeta válida, marca a las 16:42 (turno 07:00–15:00)",
+      data: { tarjeta:"TAG-2034", pin:"2034", ot:"OT-48221", hora:"16:42", offline:false } },
+    { label: "⑤ Identidad por PIN (respaldo)", desc: "Ana, tarjeta no reconocida → autentica con PIN",
+      data: { tarjeta:"TAG-9999", pin:"1953", ot:"OT-48201", hora:"09:30", offline:false } },
+    { label: "⑥ Marca rechazada", desc: "Tarjeta no reconocida y PIN incorrecto",
+      data: { tarjeta:"TAG-9999", pin:"0000", ot:"OT-48201", hora:"09:30", offline:false } },
+    { label: "⑦ Terminal sin conexión", desc: "Cualquier operario, con la red caída",
+      data: { tarjeta:"TAG-2048", pin:"2048", ot:"OT-48213", hora:"09:30", offline:true } },
+  ];
+  PRESETS.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "preset-btn";
+    b.innerHTML = `<b>${p.label}</b>${p.desc}`;
+    b.addEventListener("click", () => renderInput(p.data));
+    presetsEl.appendChild(b);
+  });
 
-  horaInp.value = nowHHMM();
+  renderInput();
 })();
 </script>
 </body>

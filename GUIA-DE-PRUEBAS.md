@@ -4,9 +4,14 @@ Este documento indica exactamente qué ingresar en el simulador (`index.html`) p
 cinco escenarios de la Tabla 26 del documento de tesis, más los dos casos de autenticación híbrida (Figura 26).
 Sirve tanto para probar el prototipo a mano como de guion para grabar el video de funcionamiento.
 
-Cada escenario tiene un botón directo en el panel **"1 · Escenario rápido"** que carga los datos por ti. Abajo
-se explica también cómo armarlo a mano en **"2 · Entrada manual"**, por si quieres mostrar el llenado campo por
-campo en el video.
+El simulador tiene dos pestañas:
+- **Asistencia**: la pantalla del terminal (donde se escriben los datos y se presiona "Marcar") y, a la
+  izquierda, los siete botones de **Escenario rápido**.
+- **Historial**: el registro acumulado de todas las marcas hechas durante la sesión.
+
+Cada escenario tiene un botón directo en **"Escenario rápido"** que llena los campos de la pantalla por ti y
+queda a la espera de que presiones **"Marcar"**. Abajo se explica también cómo escribir cada campo a mano
+directamente en la pantalla, por si quieres mostrar el llenado campo por campo en el video.
 
 ---
 
@@ -14,7 +19,8 @@ campo en el video.
 
 Todos los datos de prueba (operarios, tarjetas, PIN, OT y turnos) están fijos en `data.js`. No necesitas
 inventar nada: usa exactamente los valores de esta guía. La tabla completa de operarios está en
-`datos-de-prueba.md`.
+`datos-de-prueba.md`. Después de ver un resultado, presiona **"Registrar otra marca"** para que la pantalla
+vuelva a quedar en blanco y puedas cargar el siguiente caso.
 
 ---
 
@@ -24,7 +30,7 @@ inventar nada: usa exactamente los valores de esta guía. La tabla completa de o
 libera el registro sin intervención.
 
 - Botón rápido: **① Marca conforme**
-- A mano: Operario = *Marcelo Huamán Ríos*, Tarjeta = `TAG-2048`, OT que intenta registrar = `OT-48213`, Hora = `09:30`, conexión = activada (switch apagado)
+- A mano en la pantalla: Tarjeta detectada = `TAG-2048`, PIN de respaldo = `2048`, OT que intenta registrar = `OT-48213`, Hora de la marca = `09:30`, interruptor de conexión = apagado
 - Resultado esperado: panel verde, **MARCA CONFORME**
 
 ---
@@ -34,7 +40,7 @@ libera el registro sin intervención.
 **Qué demuestra:** el operario marca una OT que no es la suya. El sistema bloquea el cierre del parte.
 
 - Botón rápido: **② Marca no conforme**
-- A mano: Operario = *Jorge Ramírez Soto* (su OT real es `OT-48190`), Tarjeta = `TAG-2001`, pero **OT que intenta registrar** = `OT-48213` (la de otro taller), Hora = `09:30`
+- A mano en la pantalla: Tarjeta detectada = `TAG-2001` (es de Jorge Ramírez Soto, cuya OT real es `OT-48190`), PIN = `2015`, pero **OT que intenta registrar** = `OT-48213` (la de otro taller), Hora = `09:30`
 - Resultado esperado: panel rojo, **MARCA NO CONFORME — PARTE BLOQUEADO**, mencionando su OT real entre paréntesis
 
 ---
@@ -44,7 +50,7 @@ libera el registro sin intervención.
 **Qué demuestra:** el operario no tiene ninguna OT activa asignada hoy.
 
 - Botón rápido: **③ Marca sin programación**
-- A mano: Operario = *Luis Cárdenas Peña*, Tarjeta = `TAG-2069`, OT que intenta registrar = cualquiera de la lista, Hora = `09:30`
+- A mano en la pantalla: Tarjeta detectada = `TAG-2069` (Luis Cárdenas Peña, sin ninguna OT asignada), PIN = `2069`, OT que intenta registrar = cualquiera de la lista, Hora = `09:30`
 - Resultado esperado: panel ámbar, **MARCA SIN PROGRAMACIÓN**
 
 ---
@@ -54,8 +60,8 @@ libera el registro sin intervención.
 **Qué demuestra:** la OT es correcta, pero la hora de marca cae fuera del turno programado (07:00–15:00).
 
 - Botón rápido: **④ Marca fuera de horario**
-- A mano: Operario = *Rosa Delgado Vidal*, Tarjeta = `TAG-2034`, OT = `OT-48221` (la suya), **Hora = `16:42`**
-- Resultado esperado: panel ámbar, **MARCA FUERA DE HORARIO**, mostrando la hora marcada y el turno programado
+- A mano en la pantalla: Tarjeta detectada = `TAG-2034` (Rosa Delgado Vidal), PIN = `2034`, OT = `OT-48221` (la suya), **Hora de la marca = `16:42`**
+- Resultado esperado: panel ámbar, **MARCA FUERA DE HORARIO**, mostrando el taller y el rango de horas programado
 
 > Prueba adicional sugerida: cambia la hora a `06:45` (antes del turno) y confirma que también da fuera de horario.
 
@@ -67,7 +73,7 @@ libera el registro sin intervención.
 como respaldo antes de continuar con la validación normal.
 
 - Botón rápido: **⑤ Identidad por PIN (respaldo)**
-- A mano: Operario = *Ana Torres Medina*. En **Tarjeta detectada** escribe un valor que no exista, por ejemplo `TAG-9999`. En **PIN** ingresa `1953` (el suyo). OT = `OT-48201` (la suya), Hora = `09:30`
+- A mano en la pantalla: en **Tarjeta detectada** escribe un valor que no exista, por ejemplo `TAG-9999`. En **PIN de respaldo** ingresa `1953` (el de Ana Torres Medina). OT = `OT-48201` (la suya), Hora = `09:30`
 - Resultado esperado: panel verde, **MARCA CONFORME**, y debajo del nombre del operario aparece la etiqueta **"Identidad confirmada por PIN"** en vez de "por tarjeta"
 
 ---
@@ -77,7 +83,7 @@ como respaldo antes de continuar con la validación normal.
 **Qué demuestra:** ni la tarjeta ni el PIN corresponden a ningún operario registrado.
 
 - Botón rápido: **⑥ Marca rechazada**
-- A mano: Tarjeta = `TAG-9999` (no existe), PIN = `0000` (no corresponde a nadie)
+- A mano en la pantalla: Tarjeta detectada = `TAG-9999` (no existe), PIN de respaldo = `0000` (no corresponde a nadie)
 - Resultado esperado: panel rojo, **MARCA RECHAZADA**, sin nombre de operario ("No identificado")
 
 ---
@@ -87,7 +93,7 @@ como respaldo antes de continuar con la validación normal.
 **Qué demuestra:** el terminal no logra contrastar contra Unisys y registra en modo de contingencia local.
 
 - Botón rápido: **⑦ Terminal sin conexión**
-- A mano: cualquier operario y datos válidos, y luego activa el interruptor **"Simular terminal sin conexión a Unisys"** antes de presionar "Marcar"
+- A mano en la pantalla: cualquier tarjeta y datos válidos, y luego activa el interruptor **"Simular terminal sin conexión"** antes de presionar "Marcar"
 - Resultado esperado: panel gris, **TERMINAL SIN CONEXIÓN**
 
 > El interruptor tiene prioridad sobre cualquier otro dato: aunque la tarjeta y la OT sean correctas, si está
@@ -106,5 +112,5 @@ como respaldo antes de continuar con la validación normal.
 6. Caso 7 (sin conexión) — para cerrar mostrando la contingencia, y enlazarlo con la limitación explicada en
    `README.md` sobre la ausencia de conexión real a Unisys.
 
-Después de cada caso, señala el **registro de la sesión** (parte inferior derecha): ahí queda visible el
-historial de marcas de toda la demostración, útil para mostrar varios casos seguidos sin recargar la página.
+Después de cada caso, cambia a la pestaña **Historial**: ahí queda visible el registro acumulado de toda la
+demostración, útil para mostrar varios casos seguidos y cerrar el video con el resumen completo.

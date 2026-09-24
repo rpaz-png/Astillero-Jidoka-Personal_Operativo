@@ -40,9 +40,10 @@ No necesita instalación ni servidor. Dos formas:
 
 ## Cómo probarlo
 
-Usa los siete botones del panel **"1 · Escenario rápido"** para cargar cada caso con un clic, o completa los
-campos de **"2 · Entrada manual"** a mano. El detalle exacto de qué escribir en cada campo está en
-[`GUIA-DE-PRUEBAS.md`](./GUIA-DE-PRUEBAS.md).
+En la pestaña **Asistencia**, usa los siete botones de **"Escenario rápido"** para cargar cada caso con un clic
+(quedan a la espera de que presiones "Marcar"), o completa los campos directamente en la pantalla del terminal.
+La pestaña **Historial** acumula el registro de todas las marcas de la sesión. El detalle exacto de qué escribir
+en cada campo está en [`GUIA-DE-PRUEBAS.md`](./GUIA-DE-PRUEBAS.md).
 
 ---
 

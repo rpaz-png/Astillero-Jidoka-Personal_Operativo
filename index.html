@@ -31,11 +31,6 @@
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) { --paper: #14161A; --ink: #EDEEF0; --line: #33373E; --grey-light: #23262B; }
-  }
-  :root[data-theme="dark"] { --paper: #14161A; --ink: #EDEEF0; --line: #33373E; --grey-light: #23262B; }
-
   header.top {
     background: var(--navy-dark);
     color: white;
@@ -91,7 +86,6 @@
     text-align: left; padding: 9px 11px; border: 1px solid var(--line);
     background: white; border-radius: 7px; font-size: 0.79rem; cursor: pointer; color: var(--ink);
   }
-  @media (prefers-color-scheme: dark) { .preset-btn { background: #1D2025; } }
   .preset-btn:hover { border-color: var(--navy); }
   .preset-btn b { display: block; font-size: 0.86rem; margin-bottom: 1px; }
 
@@ -129,8 +123,6 @@
     width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px;
     font-size: 1.05rem; background: white; color: var(--ink);
   }
-  @media (prefers-color-scheme: dark) { .screen select, .screen input { background: #1D2025; } }
-
   .divider { height: 1px; background: var(--line); margin: 18px 0; }
 
   .toggle-row {
@@ -192,8 +184,6 @@
   .log-dot { width: 11px; height: 11px; border-radius: 50%; justify-self: center; }
   .log-empty { color: var(--grey); font-size: 0.9rem; padding: 8px 6px; }
 
-  footer.note { max-width: 1280px; margin: 0 auto 50px; padding: 0 22px; font-size: 0.8rem; color: var(--grey); line-height: 1.5; }
-  footer.note code { background: var(--grey-light); padding: 1px 6px; border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -237,12 +227,6 @@
   </section>
 
 </main>
-
-<footer class="note">
-  Este simulador corre enteramente en tu navegador con datos fijos (ver <code>datos-de-prueba.md</code>). No envía ni recibe
-  información de ningún sistema real. La lista de operarios, tarjetas, PIN y OT programadas está en el archivo
-  <code>data.js</code>. Ver <code>README.md</code> para el detalle de qué reemplazar antes de un uso real con Unisys.
-</footer>
 
 <script src="data.js"></script>
 <script>
@@ -292,13 +276,6 @@
         <label class="small">Hora de la marca</label>
         <input type="time" id="s_hora" value="${p.hora||nowHHMM()}">
       </div>
-      <div class="toggle-row">
-        <label for="s_offline">Simular terminal sin conexión</label>
-        <label class="switch">
-          <input type="checkbox" id="s_offline" ${p.offline?"checked":""}>
-          <span class="slider"></span>
-        </label>
-      </div>
       <button class="primary" id="btnMarcar">Marcar</button>
     `;
     $("btnMarcar").addEventListener("click", onMarcar);
@@ -310,9 +287,6 @@
     const pinVal = $("s_pin").value.trim();
     const otIntentada = $("s_ot").value;
     const hora = $("s_hora").value || nowHHMM();
-    const offline = $("s_offline").checked;
-
-    if (offline) return { estado: "sinconexion", operario: null, hora, otIntentada };
 
     let operario = WORKERS.find(w => w.tarjeta === tarjetaVal);
     let metodo = "tarjeta";
@@ -378,7 +352,7 @@
          ${r.operario.otAsignada ? `<div class="ot-sub">${otByCodigo(r.operario.otAsignada).taller}</div>` : ""}`
       : `<div class="row-label-lg">Operario</div>
          <div class="op-name">No identificado</div>
-         <div class="op-sub">Tarjeta y PIN no coinciden con ningún registro</div>
+         <div class="op-sub">${r.estado === "sinconexion" ? "Sin acceso a los datos de Unisys" : "Tarjeta y PIN no coinciden con ningún registro"}</div>
          <div class="divider"></div>
          <div class="row-label-lg">Orden de trabajo programada</div>
          <div class="ot-code">Sin contraste disponible</div>`;
@@ -432,13 +406,19 @@
     { label: "⑥ Marca rechazada", desc: "Tarjeta no reconocida y PIN incorrecto",
       data: { tarjeta:"TAG-9999", pin:"0000", ot:"OT-48201", hora:"09:30", offline:false } },
     { label: "⑦ Terminal sin conexión", desc: "Cualquier operario, con la red caída",
-      data: { tarjeta:"TAG-2048", pin:"2048", ot:"OT-48213", hora:"09:30", offline:true } },
+      directo: true },
   ];
   PRESETS.forEach(p => {
     const b = document.createElement("button");
     b.className = "preset-btn";
     b.innerHTML = `<b>${p.label}</b>${p.desc}`;
-    b.addEventListener("click", () => renderInput(p.data));
+    b.addEventListener("click", () => {
+      if (p.directo) {
+        renderResult({ estado: "sinconexion", operario: null, hora: nowHHMM(), otIntentada: null });
+      } else {
+        renderInput(p.data);
+      }
+    });
     presetsEl.appendChild(b);
   });
 

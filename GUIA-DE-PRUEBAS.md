@@ -92,13 +92,11 @@ como respaldo antes de continuar con la validación normal.
 
 **Qué demuestra:** el terminal no logra contrastar contra Unisys y registra en modo de contingencia local.
 
-- Botón rápido: **⑦ Terminal sin conexión**
-- A mano en la pantalla: cualquier tarjeta y datos válidos, y luego activa el interruptor **"Simular terminal sin conexión"** antes de presionar "Marcar"
-- Resultado esperado: panel gris, **TERMINAL SIN CONEXIÓN**
-
-> El interruptor tiene prioridad sobre cualquier otro dato: aunque la tarjeta y la OT sean correctas, si está
-> activado, el resultado siempre es "sin conexión". Así se comporta un terminal real que pierde la red antes de
-> poder consultar nada.
+- Botón rápido: **⑦ Terminal sin conexión** — a diferencia de los otros seis, este botón muestra el resultado
+  de inmediato, sin necesidad de presionar "Marcar". Tiene sentido así: si el terminal no tiene conexión, no
+  hay ningún dato que contrastar ni ninguna tarjeta o PIN que evaluar, así que no existe un estado intermedio de
+  "esperando marca" para este caso.
+- Resultado esperado: panel gris, **TERMINAL SIN CONEXIÓN**, sin operario identificado
 
 ---
 
